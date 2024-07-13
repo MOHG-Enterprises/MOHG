@@ -2,26 +2,29 @@ package MOHG;
 
 import robocode.*;
 
-public class MOHG extends Robot {
+public class MOHG extends AdvancedRobot {
     public void run() {
-
-        while (true) {
-            ahead(100);
-            turnGunRight(360);
-            back(100);
-            turnGunRight(360);
-        }
+        turnRadarRightRadians(Double.POSITIVE_INFINITY); 
+        do {
+            scan();
+        } while (true);
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
-        fire(1);
-    }
+        double radarTurn = getHeadingRadians() + e.getBearingRadians()
+                - getRadarHeadingRadians();
+        double fireTurn = getHeadingRadians() + e.getBearingRadians()
+                - getGunHeadingRadians();
 
-    public void onHitByBullet(HitByBulletEvent e) {
-        back(10);
+        setTurnGunRightRadians(Utils.normalRelativeAngle(fireTurn));
+        setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
     }
+    // public void onFire(ScannedRobotEvent e) {
+    // double fireTurn =
+    // getHeadingRadians() + e.getBearingRadians()
+    // - getGunHeadingRadians();
+    // fire(1);
 
-    public void onHitWall(HitWallEvent e) {
-        back(20);
-    }
+    // setTurnGunRightRadians(Utils.normalRelativeAngle(fireTurn));
+    // }
 }
