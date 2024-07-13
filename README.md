@@ -21,4 +21,12 @@ College Project 2024.1
 
 <h2 align="center"> Referências:</h2>
 
-My robot for robocode game
+* https://robocode.sourceforge.io/docs/robocode/robocode/ScannedRobotEvent.html
+* https://robocode.sourceforge.io/docs/robocode/robocode/RobotStatus.html
+* https://www.youtube.com/watch?v=NLbtqcvl2QA
+* https://www.youtube.com/watch?v=qM1HTRXXcDo
+* https://www.youtube.com/watch?v=wpkC9bOo2oQ
+* https://www.youtube.com/watch?v=zx7xFJiBGZQ
+* https://www.youtube.com/watch?v=CU3qLtZ72PA
+* https://github.com/clarkkev/beep-boop
+
