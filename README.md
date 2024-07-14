@@ -17,7 +17,7 @@ College Project 2024.1
 
 <h2 align="center"> MOHG -- Herói</h2>
 
-![MOHG](https://github.com/MOHG-Enterprises/MOHG/blob/dev/MOHG.gif)
+<img src="https://github.com/MOHG-Enterprises/MOHG/blob/dev/MOHG.gif" alt="MOHG" width="200" height="200" align="center">
 
 <h2 align="center"> BEGGERS -- Inimigo do MOHG</h2>
 
