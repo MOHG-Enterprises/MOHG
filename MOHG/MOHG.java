@@ -17,18 +17,23 @@ public class MOHG extends AdvancedRobot {
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
-        // crava a mira no inimigo
+        // tracking do radar achado na internet
         double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
         setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
-        
-        // Calcula a virada da arma pra targetar o inimigo
+
+        // aim do mohg
         double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
         double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
         setTurnGunRightRadians(gunTurn);
-        
-        // atira tentando nao gastar toda energia na distancia
-        double firePower = Math.min(400 / e.getDistance(), 3); // ajusta o fogo pela distancia ate o inimigo.
-        setFire(firePower);
 
+        // força do tiro
+        double danoMohg = Math.min(400 / e.getDistance(), 3); // dano que o mohg dá preservando pela distancia.
+        setFire(danoMohg);
     }
+
+        public void onHitByBullet(HitByBulletEvent e) {
+        // quando atingido por um robo, move para trás para quebrar a "leitura" dele.
+        back(50); // 50px para trás.
+    }
+
 }
