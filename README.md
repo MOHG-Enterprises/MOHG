@@ -1,4 +1,3 @@
-<div align="justify">
 <div align="center">
 
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/new/#https://github.com/MOHG-Enterprises/MOHG)
@@ -16,6 +15,10 @@ College Project 2024.1
 * Gustavo Pfleger Rebelo
 
 <h2 align="center"> MOHG -- Herói</h2>
+
+<div width="full" height="120" background-color="red">
+    
+</div>
 
 <img src="https://github.com/MOHG-Enterprises/MOHG/blob/dev/MOHG.gif" alt="MOHG" width="200" height="200" align="center">
 
