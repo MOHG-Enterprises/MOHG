@@ -1,6 +1,4 @@
-<div align="justify">
 <div align="center">
-
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/new/#https://github.com/MOHG-Enterprises/MOHG)
 </div>
 
@@ -17,7 +15,9 @@ College Project 2024.1
 
 <h2 align="center"> MOHG -- Herói</h2>
 
-<img src="https://github.com/MOHG-Enterprises/MOHG/blob/dev/MOHG.gif" alt="MOHG" width="200" height="200" align="center">
+<div align="center">
+    <img src="https://github.com/MOHG-Enterprises/MOHG/blob/dev/MOHG.gif" alt="MOHG" width="500" height="500" align="center"/>
+</div>
 
 <h2 align="center"> BEGGERS -- Inimigo do MOHG</h2>
 
