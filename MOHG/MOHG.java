@@ -11,8 +11,10 @@ public class MOHG extends AdvancedRobot {
         // galera, tudo que voces atualizarem do código, botem comentários para entender oq cada código faz, blz?
 
         setAdjustRadarForGunTurn(true); // radar independente da arma
+        setBodyColor(Color.BLUE);
         while (true) {
             turnRadarRight(Double.POSITIVE_INFINITY); // gira o radar pra direita infinito
+            execute(); // executa todos os comandos pendentes
         }
     }
 
@@ -33,14 +35,14 @@ public class MOHG extends AdvancedRobot {
                 // calcular a posição futura do inimigo
                 double enemyHeading = e.getHeadingRadians(); // pega a direção do inimigo
                 double enemyVelocity = e.getVelocity(); // pega a velocidade do inimigo
-                double enemyX = getX() + Math.sin(absoluteBearing) * e.getDistance();
-                double enemyY = getY() + Math.cos(absoluteBearing) * e.getDistance();
+                double enemyX = getX() + Math.sin(absoluteBearing) * e.getDistance(); // pega o X do inimigo com base no calculo do target (calculo internet)
+                double enemyY = getY() + Math.cos(absoluteBearing) * e.getDistance(); // pega o Y do inimigo com base no calculo do target (calculo internet)
 
-                double predictX = enemyX + Math.sin(enemyHeading) * enemyVelocity * (e.getDistance() / velocidadeBala);
-                double predictY = enemyY + Math.cos(enemyHeading) * enemyVelocity * (e.getDistance() / velocidadeBala);
+                double predictX = enemyX + Math.sin(enemyHeading) * enemyVelocity * (e.getDistance() / velocidadeBala); // faz o calculo para descobrir qual o X futuro (calculo internet)
+                double predictY = enemyY + Math.cos(enemyHeading) * enemyVelocity * (e.getDistance() / velocidadeBala); // faz o calculo para descobrir qual o Y futuro (calculo internet)
 
-                double angleToFuture = Utils.normalRelativeAngle(Math.atan2(predictX - getX(), predictY - getY()));
-                gunTurn = Utils.normalRelativeAngle(angleToFuture - getGunHeadingRadians());
+                double angleToFuture = Utils.normalRelativeAngle(Math.atan2(predictX - getX(), predictY - getY())); // ângulo da posição futura (calculo internet)
+                gunTurn = Utils.normalRelativeAngle(angleToFuture - getGunHeadingRadians()); // ajusta a posição da arma para o movimento do inimigo (calculo internet)
             }
 
             setTurnGunRightRadians(gunTurn); // se nao for diferente de 0, apenas muda a arma pra está direção e fixa
@@ -57,13 +59,12 @@ public class MOHG extends AdvancedRobot {
             setTurnRightRadians(angleToEnemy + evasiveAngle);
             setAhead(Double.POSITIVE_INFINITY);
         } else {
-            if (e.getDistance() < 250) { // um tipo de manobra em que eu pensei para em vez de seguir o inimigo, desviar
-                                         // quando ele estiver em 250px de distância
+            if (e.getDistance() < distancia) { // um tipo de manobra em que eu pensei para em vez de seguir o inimigo, desviar quando ele estiver em 300px de distância, vai abaixando este valor conforme bate na parede.
                 double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
                 double evasiveAngle = Math.toRadians(10) * Math.sin(getTime() / 10.0); // (calculo internet)
                 double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
-                setTurnRightRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians()));
-                setAhead(100); // se mexe para longe do inimigo
+                setTurnRightRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians())); // partes de um monte de calculo que eu vi
+                setAhead(100);
             } else {
                 // para não ir reto até o inimigo e ele correr reto, ir desviando.
                 double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
@@ -75,32 +76,28 @@ public class MOHG extends AdvancedRobot {
                 setAhead(Double.POSITIVE_INFINITY); // move pra frente, porém em "zigzag"
             }
         }
+
+        execute(); // executa todos os comandos pendentes
+    }
+
+    public void onWin(WinEvent event) {
+        while (true) {
+            setTurnRight(Double.POSITIVE_INFINITY); // robo gira ate o fim do round
+            setBodyColor(Color.getHSBColor((float) Math.random(), 1, 1)); // Muda a cor do corpo do tanque
+            execute(); // Executa os comandos pendentes
+        }
     }
 
     public void onHitByBullet(HitByBulletEvent e) {
         // caso seja atingido por uma bala, acontecerá isso:
-        setAdjustRadarForGunTurn(true); // radar independente da arma
-        // tracking do radar
-        double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
-        setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
-
-        // aim do mohg
-        double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
-        double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
-        setTurnRightRadians(Utils.normalRelativeAngle(getHeadingRadians() - e.getBearingRadians() + Math.PI / 2));
-        back(20); // se move pra trás apenas para que seja lido e logo em cima para frente
-        setAhead(100); // "dodge" do mohg
+        setBack(100); // "dodge" do mohg
+        execute();
     }
 
     public void onHitWall(HitWallEvent e) {
-        setAdjustRadarForGunTurn(true); // radar independente da arma
-        // tracking do radar
-        double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
-        setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
-
-        // aim do mohg
-        double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
-        double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
-        setBack(100); // se move pra trás apenas para que seja lido e logo em cima para frente
+        setTurnRight(Utils.normalRelativeAngle(getHeadingRadians() - e.getBearingRadians() + Math.PI / 2));
+        setBack(100); // se move pra trás apenas para que seja lido e logo em cima para frente novamente
+        distancia = distancia - 10; // para desbugar da parede e conseguir chegar mais perto do inimigo (não funciona, a distancia realmente é reduzida mas ele da 30 vezes na parede antes de chegar mais perto, ou seja, a distancia vai pra 100 e ainda não da pra chegar mais perto.)
+        execute(); // executa todos os comandos pendentes
     }
 }
