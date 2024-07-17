@@ -5,23 +5,18 @@ import robocode.util.Utils;
 
 public class MOHG extends AdvancedRobot {
     private static final double velocidadeBala = 20; // Velocidade dos tiros do MOHG, ajustada para balanceamento
-    private boolean emMovimento = false; // Variável para controlar o estado de movimento do robô
     
     public void run() {
 
         // galera, tudo que voces atualizarem do código, botem comentários para entender oq cada código faz, blz?
 
         setAdjustRadarForGunTurn(true); // radar independente da arma
-        isDodging = false;
         while (true) {
             turnRadarRight(Double.POSITIVE_INFINITY); // gira o radar pra direita infinito
         }
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
-        if (isDodging) {
-            return; // verificacao necessária para nao interromper os tiros
-        }
         if (getEnergy() > 2.0) {
             // tracking do radar
             double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
@@ -84,10 +79,28 @@ public class MOHG extends AdvancedRobot {
 
     public void onHitByBullet(HitByBulletEvent e) {
         // caso seja atingido por uma bala, acontecerá isso:
-        isDodging = true; // verificacao necessária para nao interromper os tiros
+        setAdjustRadarForGunTurn(true); // radar independente da arma
+        // tracking do radar
+        double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
+        setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
+
+        // aim do mohg
+        double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+        double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
         setTurnRightRadians(Utils.normalRelativeAngle(getHeadingRadians() - e.getBearingRadians() + Math.PI / 2));
-        back(1); // se move pra trás apenas para que seja lido e logo em cima para frente
-                 // novamente
+        back(20); // se move pra trás apenas para que seja lido e logo em cima para frente
         setAhead(100); // "dodge" do mohg
+    }
+
+    public void onHitWall(HitWallEvent e) {
+        setAdjustRadarForGunTurn(true); // radar independente da arma
+        // tracking do radar
+        double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
+        setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
+
+        // aim do mohg
+        double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+        double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
+        setBack(100); // se move pra trás apenas para que seja lido e logo em cima para frente
     }
 }
