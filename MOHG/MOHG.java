@@ -2,9 +2,11 @@ package MOHG;
 
 import robocode.*;
 import robocode.util.Utils;
+import java.awt.Color;
 
 public class MOHG extends AdvancedRobot {
     private static final double velocidadeBala = 20; // Velocidade dos tiros do MOHG, ajustada para balanceamento
+    int distancia = 300;
     
     public void run() {
 
