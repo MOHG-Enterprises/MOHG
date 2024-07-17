@@ -13,7 +13,11 @@ public class MOHG extends AdvancedRobot {
         // galera, tudo que voces atualizarem do código, botem comentários para entender oq cada código faz, blz?
 
         setAdjustRadarForGunTurn(true); // radar independente da arma
-        setBodyColor(Color.BLUE);
+        setBodyColor(Color.BLACK);
+        setGunColor(Color.BLACK)
+        setRadarColor(Color.BLACK);
+        setBulletColor(Color.BLACK);
+        setScanColor(Color.BLACK);
         while (true) {
             turnRadarRight(Double.POSITIVE_INFINITY); // gira o radar pra direita infinito
             execute(); // executa todos os comandos pendentes
