@@ -10,47 +10,92 @@ public class MOHG extends AdvancedRobot {
     public void run() {
 
         // galera, tudo que voces atualizarem do código, botem comentários para entender oq cada código faz, blz?
-
-        // gira o radar infinitamente ate encontrar um inimigo
+        
+        setAdjustRadarForGunTurn(true); // radar independente da arma
         while (true) {
-            if (!emMovimento) {
-                movimentoAleatorio(); // Executa movimento aleatório se não estiver em movimento
-            }
-            turnRadarRight(Double.POSITIVE_INFINITY); // Gira o radar continuamente para a direita
+            turnRadarRight(Double.POSITIVE_INFINITY); // gira o radar pra direita infinito
         }
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
-        // tracking do radar achado na internet
+        // tracking do radar
         double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
         setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
+
+        // força do tiro
+        double danoMohg = Math.min(400 / e.getDistance(), 3); // dano que o mohg dá preservando pela distancia.
 
         // aim do mohg
         double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
         double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
-        setTurnGunRightRadians(gunTurn);
 
-        // força do tiro
-        double danoMohg = Math.min(400 / e.getDistance(), 3); // dano que o mohg dá preservando pela distancia.
-        setFire(danoMohg);
-        // Executa movimento aleatório após cada tiro
-        if (!emMovimento) {
-            movimentoAleatorio();
+        if (e.getVelocity() != 0) {
+            // Calcular a posição futura do inimigo
+            double enemyHeading = e.getHeadingRadians(); // pega a direção do inimigo
+            double enemyVelocity = e.getVelocity(); // pega a velocidade do inimigo
+            double enemyX = getX() + Math.sin(absoluteBearing) * e.getDistance(); // pega o X do inimigo com base no calculo do target (calculo internet)
+            double enemyY = getY() + Math.cos(absoluteBearing) * e.getDistance(); // pega o Y do inimigo com base no calculo do target (calculo internet)
+
+            double predictX = enemyX + Math.sin(enemyHeading) * enemyVelocity * (e.getDistance() / velocidadeBala); // faz o calculo para descobrir qual o X futuro (calculo internet)
+            double predictY = enemyY + Math.cos(enemyHeading) * enemyVelocity * (e.getDistance() / velocidadeBala); // fazocalculoparadescobrirqualoYfuturo(calculointernet)
+
+            double angleToFuture = Utils.normalRelativeAngle(Math.atan2(predictX - getX(), predictY - getY()));
+            gunTurn = Utils.normalRelativeAngle(angleToFuture - getGunHeadingRadians()); // ajusta a posição da arma
+                                                                                         // para o movimento do inimigo
+                                                                                         // (calculo internet)
         }
 
+        setTurnGunRightRadians(gunTurn); // se nao for diferente de 0, apenas muda a arma pra está direção e fixa
+        setFire(danoMohg); // atira preservando energia com base na distância, como visto antes.
+
+        if (e.getDistance() < 250) { // um tipo de manobra em que eu pensei para em vez de seguir o inimigo, desviar
+            // quando ele estiver em 250px de distância
+            setTurnRightRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians()));
+            setAhead(100); // move para longe do inimigo
+        } else {
+            // Verificar se está próximo da parede
+            checkNearWall();
+
+            // Movimenta-se em ziguezague para desviar de balas
+            double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
+            setTurnRightRadians(angleToEnemy);
+
+            // Evitar bater nas paredes
+            if (nearWall) {
+                setTurnRight(90); // Gira 90 graus para a direita
+                setAhead(100); // Move-se 100 pixels para frente
+            } else {
+                // Alternar a direção do movimento para criar o padrão de ziguezague
+                if (movingRight) {
+                    setTurnRight(30); // Gira 30 graus para a direita
+                } else {
+                    setTurnLeft(30); // Gira 30 graus para a esquerda
+                }
+                setAhead(100 * moveDirection); // Move-se 100 pixels para frente ou para trás
+
+                // Alternar a direção do ziguezague
+                movingRight = !movingRight;
+            }
+        }
     }
 
-        public void onHitByBullet(HitByBulletEvent e) {
+    public void onHitByBullet(HitByBulletEvent e) {
         // quando atingido por um robo, move para trás para quebrar a "leitura" dele.
-        back(50); // 50px para trás.
+        moveDirection = -moveDirection; // Inverter a direção do movimento
+        setAhead(50 * moveDirection); // Move-se 50 pixels na nova direção
     }
 
-    private void movimentoAleatorio() {
-        emMovimento = true; // Define o robô como em movimento
-        double moveAmount = Math.random() * 200 - 100; // Define a quantidade aleatória de movimento
-        ahead(moveAmount); // Move para frente aleatoriamente
-        turnRight(Math.toDegrees(Math.random() * 360)); // Gira aleatoriamente
-        emMovimento = false; // Define o robô como parado após o movimento
-    }
+    // Verifica se está próximo da parede
+    private void checkNearWall() {
+        double margin = 50; // Margem para evitar as paredes
+        double battlefieldWidth = getBattleFieldWidth();
+        double battlefieldHeight = getBattleFieldHeight();
 
+        if (getX() <= margin || getX() >= battlefieldWidth - margin || getY() <= margin
+                || getY() >= battlefieldHeight - margin) {
+            nearWall = true;
+        } else {
+            nearWall = false;
+        }
+    }
 }
