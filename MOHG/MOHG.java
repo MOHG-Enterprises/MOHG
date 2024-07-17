@@ -45,4 +45,12 @@ public class MOHG extends AdvancedRobot {
         back(50); // 50px para trás.
     }
 
+    private void movimentoAleatorio() {
+        emMovimento = true; // Define o robô como em movimento
+        double moveAmount = Math.random() * 200 - 100; // Define a quantidade aleatória de movimento
+        ahead(moveAmount); // Move para frente aleatoriamente
+        turnRight(Math.toDegrees(Math.random() * 360)); // Gira aleatoriamente
+        emMovimento = false; // Define o robô como parado após o movimento
+    }
+
 }
