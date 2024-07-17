@@ -4,15 +4,19 @@ import robocode.*;
 import robocode.util.Utils;
 
 public class MOHG extends AdvancedRobot {
+    private static final double velocidadeBala = 20; // Velocidade dos tiros do MOHG, ajustada para balanceamento
+    private boolean emMovimento = false; // Variável para controlar o estado de movimento do robô
     
     public void run() {
 
         // galera, tudo que voces atualizarem do código, botem comentários para entender oq cada código faz, blz?
 
         // gira o radar infinitamente ate encontrar um inimigo
-        setAdjustRadarForGunTurn(true); // *IMPORTANTE!!! deixa o radar independente da arma
         while (true) {
-            turnRadarRight(Double.POSITIVE_INFINITY);
+            if (!emMovimento) {
+                movimentoAleatorio(); // Executa movimento aleatório se não estiver em movimento
+            }
+            turnRadarRight(Double.POSITIVE_INFINITY); // Gira o radar continuamente para a direita
         }
     }
 
@@ -29,6 +33,11 @@ public class MOHG extends AdvancedRobot {
         // força do tiro
         double danoMohg = Math.min(400 / e.getDistance(), 3); // dano que o mohg dá preservando pela distancia.
         setFire(danoMohg);
+        // Executa movimento aleatório após cada tiro
+        if (!emMovimento) {
+            movimentoAleatorio();
+        }
+
     }
 
         public void onHitByBullet(HitByBulletEvent e) {
