@@ -2,9 +2,11 @@ package MOHG;
 
 import robocode.*;
 import robocode.util.Utils;
+import java.awt.Color;
 
 public class MOHG extends AdvancedRobot {
     private static final double velocidadeBala = 20; // velocidade dos tiros do mohg, botei 20 para ficar balanceado
+	private ScannedRobotEvent lastScannedEvent; 
     
     public void run() {
         setAdjustRadarForGunTurn(true); // radar independente da arma
@@ -14,6 +16,7 @@ public class MOHG extends AdvancedRobot {
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
+			lastScannedEvent = e;
 			if (getEnergy() > 2.0) {
 				// tracking do radar
 				double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
@@ -51,14 +54,9 @@ public class MOHG extends AdvancedRobot {
 				double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
 		
 				setTurnRightRadians(angleToEnemy + evasiveAngle);
-				setAhead(Double.POSITIVE_INFINITY);
 			} else {
 				if (e.getDistance() < 250) { // um tipo de manobra em que eu pensei para em vez de seguir o inimigo, desviar quando ele estiver em 250px de distância
-					double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
-					double evasiveAngle = Math.toRadians(10) * Math.sin(getTime() / 10.0); // (calculo internet)
-					double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
-					setTurnRightRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians())); // partes de um monte de calculo que eu vi
-					setAhead(100); // se mexe para longe do inimigo
+					Movement(e, true);
 				} else {
 					// para não ir reto até o inimigo e ele correr reto, ir desviando.
 					double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
@@ -67,10 +65,30 @@ public class MOHG extends AdvancedRobot {
 				
 					// muda o angulo "impedindo" ser acertado
 					setTurnRightRadians(angleToEnemy + evasiveAngle);
+					
 					setAhead(Double.POSITIVE_INFINITY); // move pra frente, porém em "zigzag"
 				}
 		}
     }
+	
+	public void Movement(ScannedRobotEvent e, boolean goRight) {
+	    double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+	    double evasiveAngle = Math.toRadians(10) * Math.sin(getTime() / 10.0); // ajuste o ângulo evasivo conforme necessário
+	    double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
+	    
+	    if (goRight) {
+	        setTurnRightRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians()));
+	    } else {
+			setBack(Double.POSITIVE_INFINITY);
+	        setTurnLeftRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians()));
+	    }
+	}
+	
+	public void onHitWall(HitWallEvent e) {
+
+		setBodyColor(Color.PINK);		
+		Movement(lastScannedEvent, false);
+	}
 
     public void onHitByBullet(HitByBulletEvent e) {
         // caso seja atingido por uma bala, acontecerá isso:
@@ -82,20 +100,10 @@ public class MOHG extends AdvancedRobot {
 		// aim do mohg
 		double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
 		double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
+		
 		setTurnRightRadians(Utils.normalRelativeAngle(getHeadingRadians() - e.getBearingRadians() + Math.PI / 2));
-        back(20); // se move pra trás apenas para que seja lido e logo em cima para frente novamente
+        setBack(20); // se move pra trás apenas para que seja lido e logo em cima para frente novamente
     	setAhead(100); // "dodge" do mohg
-    }
-	
-	public void onHitWall(HitWallEvent e) {
-		setAdjustRadarForGunTurn(true); // radar independente da arma
-		// tracking do radar
-		double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
-		setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
-				
-		// aim do mohg
-		double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
-		double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
-        setBack(100); // se move pra trás apenas para que seja lido e logo em cima para frente novamente
+	    setBodyColor(Color.RED);
     }
 }
