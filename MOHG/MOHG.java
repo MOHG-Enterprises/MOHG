@@ -22,6 +22,12 @@ public class MOHG extends AdvancedRobot {
 
         setAdjustRadarForGunTurn(true);
 
+        setGunColor(Color.BLACK);
+		setBulletColor(Color.BLACK);
+		setRadarColor(Color.BLACK);
+		setScanColor(Color.BLACK);
+		setBodyColor(Color.BLACK);
+
         while (true) {
             turnRadarRight(Double.POSITIVE_INFINITY);
             execute();
