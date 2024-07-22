@@ -116,11 +116,6 @@ public class MOHG extends AdvancedRobot {
     }
 
 	public void onHitWall(HitWallEvent e) {	
-		if(wallState) {
-			setBodyColor(Color.PINK);
-		} else {
-			setBodyColor(Color.GREEN);
-		}
 		wallState = !wallState;
 		Movement(lastScannedEvent, wallState);
 	}
