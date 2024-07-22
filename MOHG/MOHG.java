@@ -6,6 +6,7 @@ import java.awt.Color;
 
 import MOHG.movement.MovementHandler;
 import MOHG.radar.RadarHandler;
+import MOHG.gun.GunHandler;
 
 public class MOHG extends AdvancedRobot {
     private static final double bulletSpeed = 20; // Speed of MOHG's bullets, adjusted for balance
@@ -15,6 +16,7 @@ public class MOHG extends AdvancedRobot {
 
     private MovementHandler movementHandler;
     private RadarHandler radarHandler;
+    private GunHandler gunHandler;
 
     public void run() {
         // Make MOHG dark
@@ -26,6 +28,7 @@ public class MOHG extends AdvancedRobot {
 
         movementHandler = new MovementHandler(this);
         radarHandler = new RadarHandler(this);
+        gunHandler = new GunHandler(this);
 
         setAdjustRadarForGunTurn(true); // Allow radar to move independently from the gun
         while (true) {
@@ -38,30 +41,7 @@ public class MOHG extends AdvancedRobot {
         lastScannedEvent = e; // Store the scanned robot event
         if (getEnergy() > 2.0) {
             radarHandler.trackRadar(e);
-
-            // Fire power calculation based on distance
-            double danoMohg = Math.min(400 / e.getDistance(), 3);
-
-            // Aiming calculation
-            double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
-            double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
-
-            if (e.getVelocity() != 0) {
-                // Predict the future position of the enemy
-                double enemyHeading = e.getHeadingRadians(); // Enemy's direction
-                double enemyVelocity = e.getVelocity(); // Enemy's velocity
-                double enemyX = getX() + Math.sin(absoluteBearing) * e.getDistance(); // Calculate enemy's X position
-                double enemyY = getY() + Math.cos(absoluteBearing) * e.getDistance(); // Calculate enemy's Y position
-
-                double predictX = enemyX + Math.sin(enemyHeading) * enemyVelocity * (e.getDistance() / bulletSpeed); // Predict future X
-                double predictY = enemyY + Math.cos(enemyHeading) * enemyVelocity * (e.getDistance() / bulletSpeed); // Predict future Y
-
-                double angleToFuture = Utils.normalRelativeAngle(Math.atan2(predictX - getX(), predictY - getY())); // Calculate angle to future position
-                gunTurn = Utils.normalRelativeAngle(angleToFuture - getGunHeadingRadians()); // Adjust gun turn for future position
-            }
-
-            setTurnGunRightRadians(gunTurn); // Turn the gun to the calculated angle
-            setFire(danoMohg); // Fire with calculated power
+            gunHandler.aimAndFire(e);
         }
 
         if (getEnergy() <= 2.0) {
