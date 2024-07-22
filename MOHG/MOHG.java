@@ -5,6 +5,7 @@ import robocode.util.Utils;
 import java.awt.Color;
 
 import MOHG.movement.MovementHandler;
+import MOHG.radar.RadarHandler;
 
 public class MOHG extends AdvancedRobot {
     private static final double bulletSpeed = 20; // Speed of MOHG's bullets, adjusted for balance
@@ -13,6 +14,7 @@ public class MOHG extends AdvancedRobot {
     int distance = 300; // Distance to maintain from enemy
 
     private MovementHandler movementHandler;
+    private RadarHandler radarHandler;
 
     public void run() {
         // Make MOHG dark
@@ -23,6 +25,7 @@ public class MOHG extends AdvancedRobot {
         setScanColor(Color.BLACK); 
 
         movementHandler = new MovementHandler(this);
+        radarHandler = new RadarHandler(this);
 
         setAdjustRadarForGunTurn(true); // Allow radar to move independently from the gun
         while (true) {
@@ -34,9 +37,7 @@ public class MOHG extends AdvancedRobot {
     public void onScannedRobot(ScannedRobotEvent e) {
         lastScannedEvent = e; // Store the scanned robot event
         if (getEnergy() > 2.0) {
-            // Radar tracking
-            double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
-            setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
+            radarHandler.trackRadar(e);
 
             // Fire power calculation based on distance
             double danoMohg = Math.min(400 / e.getDistance(), 3);
@@ -97,8 +98,7 @@ public class MOHG extends AdvancedRobot {
         // Actions when hit by a bullet
         setAdjustRadarForGunTurn(true); // Allow radar to move independently from the gun
         // Radar tracking
-        double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
-        setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
+        radarHandler.trackRadar(e);
 
         // Aiming calculation
         double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
