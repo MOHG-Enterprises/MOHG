@@ -6,6 +6,8 @@ import java.awt.Color;
 
 public class MOHG extends AdvancedRobot {
     private static final double velocidadeBala = 20; // Velocidade dos tiros do MOHG, ajustada para balanceamento
+    private boolean wallState = true;
+    private ScannedRobotEvent lastScannedEvent;
     int distancia = 300;
     
     public void run() {
@@ -14,7 +16,7 @@ public class MOHG extends AdvancedRobot {
 
         setAdjustRadarForGunTurn(true); // radar independente da arma
         setBodyColor(Color.BLACK);
-        setGunColor(Color.BLACK)
+        setGunColor(Color.BLACK);
         setRadarColor(Color.BLACK);
         setBulletColor(Color.BLACK);
         setScanColor(Color.BLACK);
@@ -25,6 +27,7 @@ public class MOHG extends AdvancedRobot {
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
+        lastScannedEvent = e;
         if (getEnergy() > 2.0) {
             // tracking do radar
             double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
@@ -66,11 +69,7 @@ public class MOHG extends AdvancedRobot {
             setAhead(Double.POSITIVE_INFINITY);
         } else {
             if (e.getDistance() < distancia) { // um tipo de manobra em que eu pensei para em vez de seguir o inimigo, desviar quando ele estiver em 300px de distância, vai abaixando este valor conforme bate na parede.
-                double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
-                double evasiveAngle = Math.toRadians(10) * Math.sin(getTime() / 10.0); // (calculo internet)
-                double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
-                setTurnRightRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians())); // partes de um monte de calculo que eu vi
-                setAhead(100);
+                Movement(e, true);
             } else {
                 // para não ir reto até o inimigo e ele correr reto, ir desviando.
                 double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
@@ -86,6 +85,22 @@ public class MOHG extends AdvancedRobot {
         execute(); // executa todos os comandos pendentes
     }
 
+	public void Movement(ScannedRobotEvent e, boolean goRight) {
+	    double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+	    double evasiveAngle = Math.toRadians(10) * Math.sin(getTime() / 10.0); // ajuste o ângulo evasivo conforme necessário
+	    double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
+	    
+	    if (goRight) {
+			if(wallState) {
+				setAhead(Double.POSITIVE_INFINITY);
+			}
+	        setTurnRightRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians()));
+	    } else {
+			setBack(Double.POSITIVE_INFINITY);
+	        setTurnLeftRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians()));
+	    }
+	}
+
     public void onWin(WinEvent event) {
         while (true) {
             setTurnRight(Double.POSITIVE_INFINITY); // robo gira ate o fim do round
@@ -100,10 +115,13 @@ public class MOHG extends AdvancedRobot {
         execute();
     }
 
-    public void onHitWall(HitWallEvent e) {
-        setTurnRight(Utils.normalRelativeAngle(getHeadingRadians() - e.getBearingRadians() + Math.PI / 2));
-        setBack(100); // se move pra trás apenas para que seja lido e logo em cima para frente novamente
-        distancia = distancia - 10; // para desbugar da parede e conseguir chegar mais perto do inimigo (não funciona, a distancia realmente é reduzida mas ele da 30 vezes na parede antes de chegar mais perto, ou seja, a distancia vai pra 100 e ainda não da pra chegar mais perto.)
-        execute(); // executa todos os comandos pendentes
-    }
+	public void onHitWall(HitWallEvent e) {	
+		if(wallState) {
+			setBodyColor(Color.PINK);
+		} else {
+			setBodyColor(Color.GREEN);
+		}
+		wallState = !wallState;
+		Movement(lastScannedEvent, wallState);
+	}
 }
