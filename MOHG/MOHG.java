@@ -4,11 +4,15 @@ import robocode.*;
 import robocode.util.Utils;
 import java.awt.Color;
 
+import MOHG.movement.MovementHandler;
+
 public class MOHG extends AdvancedRobot {
     private static final double bulletSpeed = 20; // Speed of MOHG's bullets, adjusted for balance
     private boolean wallState = true; // State to determine wall avoidance direction
     private ScannedRobotEvent lastScannedEvent; // Store the last scanned robot event
     int distance = 300; // Distance to maintain from enemy
+
+    private MovementHandler movementHandler;
 
     public void run() {
         // Make MOHG dark
@@ -18,26 +22,12 @@ public class MOHG extends AdvancedRobot {
         setBulletColor(Color.BLACK);
         setScanColor(Color.BLACK); 
 
+        movementHandler = new MovementHandler(this);
+
         setAdjustRadarForGunTurn(true); // Allow radar to move independently from the gun
         while (true) {
             turnRadarRight(Double.POSITIVE_INFINITY); // Turn the radar to the right indefinitely
             execute(); // Execute all pending commands
-        }
-    }
-
-    public void Movement(ScannedRobotEvent e, boolean goRight) {
-        double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
-        double evasiveAngle = Math.toRadians(10) * Math.sin(getTime() / 10.0); // Evasive maneuver angle
-        double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
-
-        if (goRight) {
-            if (wallState) {
-                setAhead(Double.POSITIVE_INFINITY); // Move forward indefinitely
-            }
-            setTurnRightRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians())); // Turn right perpendicular to the enemy
-        } else {
-            setBack(Double.POSITIVE_INFINITY); // Move backward indefinitely
-            setTurnLeftRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - getHeadingRadians())); // Turn left perpendicular to the enemy
         }
     }
 
@@ -83,7 +73,7 @@ public class MOHG extends AdvancedRobot {
             setAhead(Double.POSITIVE_INFINITY); // Move forward indefinitely
         } else {
             if (e.getDistance() < distance) { // Avoid enemy if within specified distance
-                Movement(e, true); // Execute movement
+                movementHandler.move(e, true, wallState);
             } else {
                 // Zigzag movement to avoid being hit
                 double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
@@ -100,7 +90,7 @@ public class MOHG extends AdvancedRobot {
 
     public void onHitWall(HitWallEvent e) {
         wallState = !wallState; // Toggle wall state
-        Movement(lastScannedEvent, wallState); // Execute movement based on wall state
+        movementHandler.move(lastScannedEvent, wallState, wallState);
     }
 
     public void onHitByBullet(HitByBulletEvent e) {
