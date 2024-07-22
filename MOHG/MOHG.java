@@ -111,8 +111,18 @@ public class MOHG extends AdvancedRobot {
 
     public void onHitByBullet(HitByBulletEvent e) {
         // caso seja atingido por uma bala, acontecerá isso:
-        setBack(100); // "dodge" do mohg
-        execute();
+		setAdjustRadarForGunTurn(true); // radar independente da arma
+		// tracking do radar
+		double radarTurn = getHeadingRadians() + e.getBearingRadians() - getRadarHeadingRadians();
+		setTurnRadarRightRadians(Utils.normalRelativeAngle(radarTurn));
+				
+		// aim do mohg
+		double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+		double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
+		
+		setTurnRightRadians(Utils.normalRelativeAngle(getHeadingRadians() - e.getBearingRadians() + Math.PI / 2));
+        setBack(20); // se move pra trás apenas para que seja lido e logo em cima para frente novamente
+    	setAhead(100); // "dodge" do mohg
     }
 
 	public void onHitWall(HitWallEvent e) {	
