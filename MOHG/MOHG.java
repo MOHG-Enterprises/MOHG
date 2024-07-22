@@ -24,7 +24,7 @@ public class MOHG extends AdvancedRobot {
         setGunColor(Color.BLACK);
         setRadarColor(Color.BLACK);
         setBulletColor(Color.BLACK);
-        setScanColor(Color.BLACK); 
+        setScanColor(Color.BLACK);
 
         movementHandler = new MovementHandler(this);
         radarHandler = new RadarHandler(this);
@@ -42,31 +42,35 @@ public class MOHG extends AdvancedRobot {
         if (getEnergy() > 2.0) {
             radarHandler.trackRadar(e);
             gunHandler.aimAndFire(e);
+        } else {
+            evasiveManeuver(e);
         }
 
-        if (getEnergy() <= 2.0) {
-            // Evasive maneuver if energy is low
-            double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
-            double evasiveAngle = Math.toRadians(10) * Math.sin(getTime() / 10.0); // Evasive angle calculation
-            double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
-
-            setTurnRightRadians(angleToEnemy + evasiveAngle); // Turn right with evasive angle
-            setAhead(Double.POSITIVE_INFINITY); // Move forward indefinitely
+        if (e.getDistance() < distance) {
+            movementHandler.move(e, true, wallState);
         } else {
-            if (e.getDistance() < distance) { // Avoid enemy if within specified distance
-                movementHandler.move(e, true, wallState);
-            } else {
-                // Zigzag movement to avoid being hit
-                double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
-                double evasiveAngle = Math.toRadians(10) * Math.sin(getTime() / 10.0); // Evasive angle calculation
-                double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
-
-                setTurnRightRadians(angleToEnemy + evasiveAngle); // Turn right with evasive angle
-                setAhead(Double.POSITIVE_INFINITY); // Move forward indefinitely in a zigzag pattern
-            }
+            evasiveMovement(e);
         }
 
         execute(); // Execute all pending commands
+    }
+
+    private void evasiveManeuver(ScannedRobotEvent e) {
+        double absoluteBearing = getHeadingRadians() + ((ScannedRobotEvent) e).getBearingRadians();
+        double evasiveAngle = Math.toRadians(10) * Math.sin(getTime() / 10.0);
+        double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
+
+        setTurnRightRadians(angleToEnemy + evasiveAngle);
+        setAhead(Double.POSITIVE_INFINITY);
+    }
+
+    private void evasiveMovement(ScannedRobotEvent e) {
+        double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
+        double evasiveAngle = Math.toRadians(10) * Math.sin(getTime() / 10.0);
+        double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - getHeadingRadians());
+
+        setTurnRightRadians(angleToEnemy + evasiveAngle);
+        setAhead(Double.POSITIVE_INFINITY);
     }
 
     public void onHitWall(HitWallEvent e) {
@@ -75,18 +79,8 @@ public class MOHG extends AdvancedRobot {
     }
 
     public void onHitByBullet(HitByBulletEvent e) {
-        // Actions when hit by a bullet
-        setAdjustRadarForGunTurn(true); // Allow radar to move independently from the gun
-        // Radar tracking
-        radarHandler.trackRadar(e);
-
-        // Aiming calculation
-        double absoluteBearing = getHeadingRadians() + e.getBearingRadians();
-        double gunTurn = Utils.normalRelativeAngle(absoluteBearing - getGunHeadingRadians());
-
-        setTurnRightRadians(Utils.normalRelativeAngle(getHeadingRadians() - e.getBearingRadians() + Math.PI / 2)); // Turn right perpendicular to the bullet direction
-        setBack(20); // Move back slightly
-        setAhead(100); // Move forward to dodge
+        radarHandler.trackRadar(lastScannedEvent);
+        evasiveManeuver(lastScannedEvent);
     }
 
     public void onWin(WinEvent event) {
