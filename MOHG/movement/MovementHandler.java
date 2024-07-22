@@ -2,12 +2,12 @@ package MOHG.movement;
 
 import robocode.*;
 import robocode.util.Utils;
-import MOHG.Main;
+import MOHG.MOHG;
 
 public class MovementHandler {
-    private Main robot;
+    private MOHG robot;
 
-    public MovementHandler(Main robot) {
+    public MovementHandler(MOHG robot) {
         this.robot = robot;
     }
 
@@ -25,5 +25,23 @@ public class MovementHandler {
             robot.setBack(Double.POSITIVE_INFINITY);
             robot.setTurnLeftRadians(Utils.normalRelativeAngle(absoluteBearing + Math.PI / 2 - robot.getHeadingRadians()));
         }
+    }
+	
+    public void evasiveManeuver(ScannedRobotEvent e) {
+        double absoluteBearing = robot.getHeadingRadians() + ((ScannedRobotEvent) e).getBearingRadians();
+        double evasiveAngle = Math.toRadians(10) * Math.sin(robot.getTime() / 10.0);
+        double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - robot.getHeadingRadians());
+
+        robot.setTurnRightRadians(angleToEnemy + evasiveAngle);
+        robot.setAhead(Double.POSITIVE_INFINITY);
+    }
+
+    public void evasiveMovement(ScannedRobotEvent e) {
+        double absoluteBearing = robot.getHeadingRadians() + e.getBearingRadians();
+        double evasiveAngle = Math.toRadians(10) * Math.sin(robot.getTime() / 10.0);
+        double angleToEnemy = Utils.normalRelativeAngle(absoluteBearing - robot.getHeadingRadians());
+
+        robot.setTurnRightRadians(angleToEnemy + evasiveAngle);
+        robot.setAhead(Double.POSITIVE_INFINITY);
     }
 }
